@@ -37,6 +37,8 @@ module.exports.Component = registerComponent('cursor', {
   onMouseDown: function (evt) {
     this.emit('mousedown');
     this.mouseDownEl = this.intersectedEl;
+    this.mouseDownDistance = this.intersectionDistance;
+    this.mouseDownPoint = this.intersectionPoint.clone();
   },
 
   onMouseUp: function () {
@@ -44,19 +46,24 @@ module.exports.Component = registerComponent('cursor', {
     if (this.data.fuse) { return; }
     if (!this.intersectedEl) { return; }
     if (this.mouseDownEl === this.intersectedEl) {
-      this.emit('click');
+      this.emit('click', {
+        distance: this.mouseDownDistance,
+        point: this.mouseDownPoint
+      });
     }
   },
 
-  emit: function (evt) {
+  emit: function (evt, detail) {
     var intersectedEl = this.intersectedEl;
-    this.el.emit(evt, { target: this.intersectedEl });
-    if (intersectedEl) { intersectedEl.emit(evt); }
+    this.el.emit(evt, detail);
+    if (intersectedEl) {
+      intersectedEl.emit(evt, detail);
+    }
   },
 
-  emitter: function (evt) {
+  emitter: function (evt, detail) {
     return function () {
-      this.emit(evt);
+      this.emit(evt, detail);
     }.bind(this);
   },
 
@@ -65,6 +72,9 @@ module.exports.Component = registerComponent('cursor', {
     var data = this.data;
     var el = evt.detail.el;
     var distance = evt.detail.distance;
+    var point = evt.detail.point;
+    this.intersectionDistance = distance;
+    this.intersectionPoint = point;
     if (this.intersectedEl === el) { return; }
     if (distance >= this.data.maxDistance) { return; }
     this.intersectedEl = el;
@@ -77,7 +87,10 @@ module.exports.Component = registerComponent('cursor', {
     this.fuseTimeout = setTimeout(fuse, data.timeout);
     function fuse () {
       self.el.removeState('fusing');
-      self.emit('click');
+      self.emit('click', {
+        distance: distance,
+        point: point
+      });
     }
   },
 

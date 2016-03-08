@@ -4,7 +4,8 @@
     <meta charset="utf-8">
     <title>Cursor</title>
     <meta name="description" content="Cursor - A-Frame">
-    <script src="../../dist/aframe.js"></script>
+    <!--<script src="../../dist/aframe.js"></script> -->
+    <script src="../../build/aframe.js"></script>
   </head>
   <body>
     <a-scene stats="true">
@@ -21,9 +22,9 @@
 
       <a-entity position="0 2.2 4">
         <a-entity camera look-controls wasd-controls>
-          <a-entity position="0 0 -5"
-                    geometry="primitive: ring; radiusOuter: 0.30;
-                              radiusInner: 0.20;"
+          <a-entity position="0 0 -2.00"
+                    geometry="primitive: ring; radiusOuter: 0.10;
+                              radiusInner: 0.05;"
                     material="color: red; shader: flat"
                     cursor="maxDistance: 30"></a-entity>
         </a-entity>
@@ -36,12 +37,9 @@
         </a-entity>
       </a-entity>
 
-      <a-entity position="0 1 0">
-        <a-entity mixin="cube green">
-          <a-animation begin="click" attribute="rotation" to="0 360 0"
-                       easing="linear" dur="2000" fill="backwards"></a-animation>
-        </a-entity>
-      </a-entity>
+      <a-entity id="hit-point" mixin="sphere red" geometry="radius: 0.25"
+                visibility="false"></a-entity>
+      <a-entity id="hit-cube" position="0 1 -1" mixin="cube yellow"></a-entity>
 
       <a-entity position="3.5 1 0" rotation="0 45 0">
         <a-entity mixin="cube blue">
@@ -51,8 +49,11 @@
         </a-entity>
       </a-entity>
 
-      <a-entity position="0 3 0" class="clickable" mixin="cube yellow"
-                rotation="0 45 0" scale=".5 .5 .5"></a-entity>
+      <a-entity position="0 3.5 -1" class="clickable" mixin="cube green"
+                rotation="0 0 0" scale="1 1 1">
+          <a-animation begin="click" attribute="rotation" to="0 360 0"
+                       easing="linear" dur="2000" fill="backwards"></a-animation>
+      </a-entity>
     </a-scene>
 
     <script>
@@ -69,6 +70,20 @@
             clickedEl = el;
             clickedEl.addState('selected');
           });
+        });
+
+        // Use the event detail obtained from the raycaster
+        var cube = document.querySelector('#hit-cube');
+        var point = document.querySelector('#hit-point');
+        cube.addEventListener('click', function(e) {
+          console.log('CLICK', e.detail.point);//XXX
+          point.setAttribute('position', {
+            x: e.detail.point.x,
+            y: e.detail.point.y,
+            z: e.detail.point.z
+          })
+          console.log('moved point', point);//XXX
+          point.setAttribute('visibility', true);
         });
 
         // If you want to respond to mouse events, this is how. Otherwise,

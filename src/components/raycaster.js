@@ -5,7 +5,12 @@ var THREE = require('../lib/three');
 module.exports.Component = registerComponent('raycaster', {
   init: function () {
     this.raycaster = new THREE.Raycaster();
+    this.raycaster.near = 0.5;//XXX
+    this.raycaster.far = 10000;//XXX
     this.intersectedEl = null;
+
+    this.originPosition = null;
+    this.cursorPosition = null;
   },
 
   play: function () {
@@ -46,6 +51,9 @@ module.exports.Component = registerComponent('raycaster', {
     var parent = el.parentNode.object3D;
     var originPosition = new THREE.Vector3().setFromMatrixPosition(parent.matrixWorld);
     var cursorPosition = new THREE.Vector3().setFromMatrixPosition(cursor.matrixWorld);
+    this.originPosition = originPosition;
+    this.cursorPosition = cursorPosition;
+
     var direction = cursorPosition.sub(originPosition).normalize();
     raycaster.set(originPosition, direction);
     return raycaster.intersectObjects(objects, true);
@@ -79,9 +87,9 @@ module.exports.Component = registerComponent('raycaster', {
   /**
    * Remembers the last intersected element
    */
-  setExistingIntersection: function (el, distance) {
+  setExistingIntersection: function (el, distance, point) {
     this.intersectedEl = el;
-    this.el.emit('intersection', { el: el, distance: distance });
+    this.el.emit('intersection', { el: el, distance: distance, point: point });
   },
 
   /**
@@ -95,12 +103,14 @@ module.exports.Component = registerComponent('raycaster', {
 
   handleIntersection: function (obj) {
     var el = obj.object.el;
+    var point = obj.point.clone();
 
     // A new intersection where previously a different element was
     // and now needs a mouseleave event.
     if (this.intersectedEl !== el) {
       this.clearExistingIntersection();
     }
-    this.setExistingIntersection(el, obj.distance);
+    this.setExistingIntersection(el, obj.distance, point);
+
   }
 });
